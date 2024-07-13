@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { hashPassword, generateTokenAndSetCookie } from "../lib/utils";
 import User from "../models/user.model";
 import { registerScehma, loginSchema } from "../schemas/index";
+import { AuthRequest } from "../middleware/authMiddleware";
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -77,6 +78,20 @@ export const logout = (req: Request, res: Response) => {
       expires: new Date(0),
     });
     res.status(200).json({ message: "Logout successful" });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const currentUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const user = await User.findById(req.user._id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(200).json(user);
   } catch (error) {
     res.status(500).json({ error: "Server error" });
   }
